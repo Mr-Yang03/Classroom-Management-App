@@ -102,7 +102,7 @@ export default function Page() {
             <p className="text-center text-gray-500 mt-5">Passwordless authentication method</p>
         </div>
         <div>
-            <p>Don't have an account? <a href="#" className="text-blue-500">Sign up</a></p>
+            <p>Don&apos;t have an account? <a href="#" className="text-blue-500">Sign up</a></p>
         </div>
       </main>
     </div>
