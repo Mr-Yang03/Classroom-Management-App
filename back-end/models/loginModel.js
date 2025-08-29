@@ -1,38 +1,81 @@
-const db = require('./config/db')
+const { db } = require('../config/db')
 
-app.post("/api/instructor/check-phone", async (req, res) => {
+async function getInstructorByPhone(phone) {
   try {
-    const { phone } = req.body;
-
-    if (!phone) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Số điện thoại không được để trống" 
-      });
-    }
-
-    // Check if phone exists in instructors collection
     const instructorRef = db.collection('instructors');
     const snapshot = await instructorRef.where('phone', '==', phone).get();
 
     if (snapshot.empty) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Số điện thoại chưa được đăng ký. Vui lòng liên hệ quản trị viên." 
-      });
+      return null;
     }
 
-    // Phone exists
-    return res.status(200).json({ 
-      success: true, 
-      message: "Số điện thoại hợp lệ" 
+    const instructorData = snapshot.docs[0].data();
+    return {
+      id: snapshot.docs[0].id,
+      ...instructorData
+    };
+  } catch (error) {
+    console.error("Error fetching instructor by phone:", error);
+    throw new Error("Error fetching instructor");
+  }
+}
+
+async function storeVerificationCode(phone, code) {
+  try {
+    const verificationRef = db.collection('verificationCodes');
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await verificationRef.doc(phone).set({
+      code: code,
+      phone: phone,
+      createdAt: new Date(),
+      expiresAt: expiresAt,
+      used: false
     });
 
+    return true;
   } catch (error) {
-    console.error("Error checking phone:", error);
-    return res.status(500).json({ 
-      success: false, 
-      message: "Lỗi hệ thống. Vui lòng thử lại sau." 
-    });
+    console.error("Error storing verification code:", error);
+    throw new Error("Error storing verification code");
   }
-});
+}
+
+async function validateVerificationCode(phone, code) {
+  try {
+    const verificationRef = db.collection('verificationCodes');
+    const doc = await verificationRef.doc(phone).get();
+
+    if (!doc.exists) {
+      return { valid: false, message: "Mã xác thực không tồn tại" };
+    }
+
+    const data = doc.data();
+    const now = new Date();
+
+    if (data.used) {
+      return { valid: false, message: "Mã xác thực đã được sử dụng" };
+    }
+
+    if (now > data.expiresAt.toDate()) {
+      return { valid: false, message: "Mã xác thực đã hết hạn" };
+    }
+
+    if (data.code !== code) {
+      return { valid: false, message: "Mã xác thực không đúng" };
+    }
+
+    // Mark as used
+    await verificationRef.doc(phone).update({ used: true });
+
+    return { valid: true, message: "Mã xác thực hợp lệ" };
+  } catch (error) {
+    console.error("Error validating verification code:", error);
+    throw new Error("Error validating verification code");
+  }
+}
+
+module.exports = {
+  getInstructorByPhone,
+  storeVerificationCode,
+  validateVerificationCode
+};

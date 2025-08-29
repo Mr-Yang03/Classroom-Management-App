@@ -27,7 +27,7 @@ export default function Page() {
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/instructor/check-phone', {
+      const response = await fetch('http://localhost:3000/api/instructor/check-phone', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

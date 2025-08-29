@@ -5,16 +5,21 @@ const { db } = require("./config/db");
 const swaggerUI = require("swagger-ui-express");
 const swaggerDocument = require('./swagger-output.json');
 
+const loginRoute = require("./routes/loginRoute");
+
 dotenv.config();
 
 const app = express();
 
 app.use(cors());
-app.use("/api", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+app.use("/docs", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const PORT = process.env.PORT || 9000;
+// Routes
+app.use("/api/instructor", loginRoute);
+
+const PORT = process.env.PORT || 8000;
 
 // Test route để kiểm tra kết nối Firebase
 app.get('/test-firebase', async (req, res) => {

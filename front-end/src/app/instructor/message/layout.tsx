@@ -9,7 +9,7 @@ export default function Layout({
   return (
     <AuthGuard>
       <div className="flex h-screen bg-gray-50">
-        <LeftMenu role="instructor" />
+        <LeftMenu role="instructor"/>
         <main className="flex-1 p-8">
           {children}
         </main>

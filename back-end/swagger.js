@@ -9,7 +9,7 @@ const doc = {
     description: 'Apis supports feature of project!',
     version: '1.0.0',
   },
-  host: 'localhost:9000', 
+  host: 'localhost:8000', 
   schemes: ['https'],
   consumes: ['application/json'],
   produces: ['application/json'],
