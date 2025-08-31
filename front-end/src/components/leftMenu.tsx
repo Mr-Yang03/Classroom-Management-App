@@ -100,6 +100,9 @@ export function LeftMenu({ role }: LeftMenuProps) {
           <button 
             className="cursor-pointer text-gray-600 hover:text-red-600 hover:bg-red-50 flex items-center"
             onClick={() => {
+              localStorage.removeItem('user-data');
+              localStorage.removeItem('user-token');
+              localStorage.removeItem('role');
               router.push('/');
             }}
           >

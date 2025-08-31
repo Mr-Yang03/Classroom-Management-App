@@ -46,28 +46,28 @@ async function validateVerificationCode(phone, code) {
     const doc = await verificationRef.doc(phone).get();
 
     if (!doc.exists) {
-      return { valid: false, message: "Mã xác thực không tồn tại" };
+      return { valid: false, message: "Access Code is nonexistent" };
     }
 
     const data = doc.data();
     const now = new Date();
 
     if (data.used) {
-      return { valid: false, message: "Mã xác thực đã được sử dụng" };
+      return { valid: false, message: "Access Code has already been used" };
     }
 
     if (now > data.expiresAt.toDate()) {
-      return { valid: false, message: "Mã xác thực đã hết hạn" };
+      return { valid: false, message: "Access Code has expired" };
     }
 
     if (data.code !== code) {
-      return { valid: false, message: "Mã xác thực không đúng" };
+      return { valid: false, message: "Access Code is invalid" };
     }
 
     // Mark as used
     await verificationRef.doc(phone).update({ used: true });
 
-    return { valid: true, message: "Mã xác thực hợp lệ" };
+    return { valid: true, message: "Access Code is valid" };
   } catch (error) {
     console.error("Error validating verification code:", error);
     throw new Error("Error validating verification code");

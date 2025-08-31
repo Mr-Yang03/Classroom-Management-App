@@ -1,27 +1,66 @@
 const jwt = require('jsonwebtoken');
 const { getInstructorByPhone, storeVerificationCode, validateVerificationCode } = require('../models/loginModel');
 const dotenv = require("dotenv");
+const axios = require('axios');
 
 dotenv.config();
 
-let client;
-if (accountSid && authToken) {
-  client = twilio(accountSid, authToken);
+const infobipApiKey = process.env.INFOBIP_API_KEY;
+const infobipApiUrl = process.env.INFOBIP_API_URL;
+
+let infobipConfigured = false;
+if (infobipApiKey && infobipApiUrl) {
+  infobipConfigured = true;
+  console.log('InfoBip SMS service configured successfully');
 } else {
-  console.error('Twilio credentials missing!');
+  console.error('InfoBip credentials missing!');
 }
 
 function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-async function checkInstructorPhone(req, res) {
+async function sendSMSViaInfobip(phoneNumber, message) {
+  try {
+    const response = await axios.post(
+      `${infobipApiUrl}/sms/2/text/advanced`,
+      {
+        messages: [
+          {
+            destinations: [
+              {
+                to: phoneNumber
+              }
+            ],
+            from: "ClassRoom",
+            text: message
+          }
+        ]
+      },
+      {
+        headers: {
+          'Authorization': `App ${infobipApiKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      }
+    );
+
+    console.log('Infobip SMS sent successfully:', response.data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Infobip SMS Error:', error.response?.data || error.message);
+    return { success: false, error: error.response?.data || error.message };
+  }
+}
+
+async function createAccessCode(req, res) {
   const { phone } = req.body;
 
   if (!phone) {
     return res.status(400).json({
       success: false,
-      message: "Số điện thoại không được để trống"
+      message: "Phone number is required"
     });
   }
 
@@ -31,42 +70,45 @@ async function checkInstructorPhone(req, res) {
     if (!instructor) {
       return res.status(404).json({
         success: false,
-        message: "Số điện thoại chưa được đăng ký. Vui lòng liên hệ quản trị viên."
+        message: "Phone number is not registered."
       });
     }
 
-    // Generate and store verification code
     const verificationCode = generateVerificationCode();
     await storeVerificationCode(phone, verificationCode);
 
-    // Send SMS via Twilio
     try {
-      // Check if Twilio is properly configured
-      if (!client) {
-        console.log('Twilio not configured, using mock verification code:', verificationCode);
-        // In development, just log the code instead of sending SMS
+      if (!infobipConfigured) {
+        console.log('Infobip not configured, using mock verification code:', verificationCode);
         return res.status(200).json({
           success: true,
-          message: "Mã xác thực đã được tạo (Development mode - check console)",
-          devCode: verificationCode // Remove this in production
+          message: "Verification code has been created.",
+          devCode: verificationCode
         });
       }
 
-      await client.messages.create({
-        body: `Mã xác thực của bạn là: ${verificationCode}. Mã có hiệu lực trong 10 phút.`,
-        from: twilioPhoneNumber,
-        to: '+84' + phone.slice(1)
-      });
+      const smsMessage = `Your verification code is: ${verificationCode}. The code is valid for 10 minutes.`;
+      const phoneNumberFormatted = '+84' + phone.slice(1);
+      
+      const smsResult = await sendSMSViaInfobip(phoneNumberFormatted, smsMessage);
+
+      if (!smsResult.success) {
+        console.error("Failed to send SMS via InfoBip:", smsResult.error);
+        return res.status(500).json({
+          success: false,
+          message: "Unable to send verification code. Please try again later."
+        });
+      }
 
       return res.status(200).json({
         success: true,
-        message: "Mã xác thực đã được gửi về số điện thoại của bạn"
+        message: "Verification code has been sent to your phone number."
       });
-    } catch (twilioError) {
-      console.error("Twilio SMS Error:", twilioError);
+    } catch (smsError) {
+      console.error("SMS Error:", smsError);
       return res.status(500).json({
         success: false,
-        message: "Không thể gửi mã xác thực. Vui lòng thử lại sau."
+        message: "Unable to send verification code. Please try again later."
       });
     }
 
@@ -74,7 +116,7 @@ async function checkInstructorPhone(req, res) {
     console.error("Error checking phone:", error);
     return res.status(500).json({
       success: false,
-      message: "Lỗi hệ thống. Vui lòng thử lại sau."
+      message: "System error. Please try again later."
     });
   }
 }
@@ -85,7 +127,7 @@ async function validateAccessCode(req, res) {
   if (!phone || !accessCode) {
     return res.status(400).json({
       success: false,
-      message: "Vui lòng nhập đầy đủ thông tin"
+      message: "Please provide all required information."
     });
   }
 
@@ -106,7 +148,7 @@ async function validateAccessCode(req, res) {
     if (!instructor) {
       return res.status(404).json({
         success: false,
-        message: "Không tìm thấy thông tin instructor"
+        message: "Instructor information not found."
       });
     }
 
@@ -115,7 +157,7 @@ async function validateAccessCode(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Đăng nhập thành công",
+      message: "Login successful",
       token: token,
       instructor: {
         id: instructor.id,
@@ -128,7 +170,7 @@ async function validateAccessCode(req, res) {
     console.error("Error validating access code:", error);
     return res.status(500).json({
       success: false,
-      message: "Lỗi hệ thống. Vui lòng thử lại sau."
+      message: "System error. Please try again later."
     });
   }
 }
@@ -144,6 +186,6 @@ async function generateToken(instructor) {
 }
 
 module.exports = {
-  checkInstructorPhone,
+  createAccessCode,
   validateAccessCode
 };

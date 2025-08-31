@@ -15,15 +15,13 @@ export default function Page() {
   const [countdown, setCountdown] = useState(60);
 
   useEffect(() => {
-    // Get phone from localStorage
-    const storedPhone = localStorage.getItem('instructorPhone');
-    if (!storedPhone) {
+    const storedUserData = localStorage.getItem('instructorPhone');
+    if (!storedUserData) {
       router.push('/instructor/login');
       return;
     }
-    setPhone(storedPhone);
+    setPhone(storedUserData);
 
-    // Start countdown for resend button
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -40,12 +38,12 @@ export default function Page() {
 
   const handleSubmit = async () => {
     if (!verificationCode.trim()) {
-      setErrorMessage('Vui lòng nhập mã xác thực');
+      setErrorMessage('Please enter the verification code');
       return;
     }
 
     if (verificationCode.length !== 6) {
-      setErrorMessage('Mã xác thực phải có 6 chữ số');
+      setErrorMessage('Verification code must be 6 digits');
       return;
     }
 
@@ -53,7 +51,7 @@ export default function Page() {
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/instructor/validate-code', {
+      const response = await fetch('http://localhost:8000/api/instructor/validateAccessCode', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -67,21 +65,19 @@ export default function Page() {
       const data = await response.json();
 
       if (data.success) {
-        // Store JWT token
-        localStorage.setItem('instructorToken', data.token);
-        localStorage.setItem('instructorData', JSON.stringify(data.instructor));
-        
-        // Clear phone from localStorage as it's no longer needed
+        localStorage.setItem('user-token', data.token);
+        localStorage.setItem('user-data', JSON.stringify(data.instructor));
+        localStorage.setItem('role', 'instructor');
+
         localStorage.removeItem('instructorPhone');
         
-        // Redirect to dashboard
         router.push('/instructor/manageStudents');
       } else {
         setErrorMessage(data.message);
       }
     } catch (error) {
       console.error('Error:', error);
-      setErrorMessage('Lỗi kết nối. Vui lòng thử lại sau.');
+      setErrorMessage('Connection error. Please try again later.');
     } finally {
       setIsLoading(false);
     }
@@ -124,7 +120,7 @@ export default function Page() {
       }
     } catch (error) {
       console.error('Error:', error);
-      setErrorMessage('Lỗi kết nối. Vui lòng thử lại sau.');
+      setErrorMessage('Connection error. Please try again later.');
       setCanResend(true);
     } finally {
       setIsLoading(false);
@@ -183,7 +179,7 @@ export default function Page() {
               onClick={handleSubmit}
               disabled={isLoading}
             >
-              {isLoading ? 'Đang xác thực...' : 'Submit'}
+              {isLoading ? 'Verifying...' : 'Submit'}
             </button>
         </div>
         <div>

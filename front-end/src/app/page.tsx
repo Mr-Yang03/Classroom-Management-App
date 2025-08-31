@@ -16,13 +16,13 @@ export default function Home() {
         </p>
         <div className="flex flex-col gap-4">
           <button 
-            className="bg-blue-500 text-white py-2 px-4 rounded-lg w-100 hover:bg-blue-600"
+            className="cursor-pointer bg-blue-500 text-white py-2 px-4 rounded-lg w-100 hover:bg-blue-600"
             onClick={() => router.push('/instructor/login')}
           >
             Instructor
           </button>
           <button 
-            className="bg-green-500 text-white py-2 px-4 rounded-lg w-100 hover:bg-green-600"
+            className="cursor-pointer bg-green-500 text-white py-2 px-4 rounded-lg w-100 hover:bg-green-600"
             onClick={() => router.push('/student/login')}
           >
             Student

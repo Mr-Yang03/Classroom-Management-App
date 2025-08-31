@@ -13,13 +13,13 @@ export default function Page() {
 
   const handleNext = async () => {
     if (!phone.trim()) {
-      setErrorMessage('Vui lòng nhập số điện thoại');
+      setErrorMessage('Please enter your phone number');
       return;
     }
 
     const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
     if (!phoneRegex.test(phone)) {
-      setErrorMessage('Số điện thoại không hợp lệ');
+      setErrorMessage('Invalid phone number');
       return;
     }
 
@@ -27,7 +27,7 @@ export default function Page() {
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/instructor/check-phone', {
+      const response = await fetch('http://localhost:8000/api/instructor/createAccessCode', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,7 +45,7 @@ export default function Page() {
       }
     } catch (error) {
       console.error('Error:', error);
-      setErrorMessage('Lỗi kết nối. Vui lòng thử lại sau.');
+      setErrorMessage('Connection error. Please try again later.');
     } finally {
       setIsLoading(false);
     }
@@ -97,7 +97,7 @@ export default function Page() {
               onClick={handleNext}
               disabled={isLoading}
             >
-              {isLoading ? 'Đang kiểm tra...' : 'Next'}
+              {isLoading ? 'Checking...' : 'Next'}
             </button>
             <p className="text-center text-gray-500 mt-5">Passwordless authentication method</p>
         </div>

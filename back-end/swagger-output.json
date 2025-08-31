@@ -14,7 +14,7 @@
     }
   ],
   "schemes": [
-    "https"
+    "http"
   ],
   "securityDefinitions": {
     "apiKeyAuth": {
@@ -31,57 +31,11 @@
     "application/json"
   ],
   "paths": {
-    "/test-firebase": {
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/test-accounts": {
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/test-instructors": {
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/": {
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/instructor/check-phone": {
+    "/api/instructor/createAccessCode": {
       "post": {
+        "tags": [
+          "Login"
+        ],
         "description": "",
         "parameters": [
           {
@@ -113,8 +67,11 @@
         }
       }
     },
-    "/api/instructor/validate-code": {
+    "/api/instructor/validateAccessCode": {
       "post": {
+        "tags": [
+          "Login"
+        ],
         "description": "",
         "parameters": [
           {

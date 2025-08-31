@@ -7,26 +7,26 @@ export interface InstructorData {
 export const authUtils = {
   isAuthenticated: (): boolean => {
     if (typeof window === 'undefined') return false;
-    const token = localStorage.getItem('instructorToken');
+    const token = localStorage.getItem('user-token');
     return !!token;
   },
 
   getToken: (): string | null => {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('instructorToken');
+    return localStorage.getItem('user-token');
   },
 
   getInstructorData: (): InstructorData | null => {
     if (typeof window === 'undefined') return null;
-    const data = localStorage.getItem('instructorData');
+    const data = localStorage.getItem('user-data');
     return data ? JSON.parse(data) : null;
   },
 
   clearAuth: (): void => {
     if (typeof window === 'undefined') return;
-    localStorage.removeItem('instructorToken');
-    localStorage.removeItem('instructorData');
-    localStorage.removeItem('instructorPhone');
+    localStorage.removeItem('user-token');
+    localStorage.removeItem('user-data');
+    localStorage.removeItem('role');
   },
 
   isTokenValid: (): boolean => {

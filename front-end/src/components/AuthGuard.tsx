@@ -10,7 +10,7 @@ interface AuthGuardProps {
 export default function AuthGuard({ children }: AuthGuardProps) {
   const [checking, setChecking] = useState(true);
   useEffect(() => {
-    const loginInfo = localStorage.getItem("user-info");
+    const loginInfo = localStorage.getItem("user-data");
     if (!loginInfo) {
       window.location.href = "/";
     }else {
